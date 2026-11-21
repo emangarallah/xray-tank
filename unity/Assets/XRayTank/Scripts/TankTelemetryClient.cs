@@ -16,7 +16,6 @@ namespace XRayTank
         [SerializeField, Min(5f)] private float pollSeconds = 15f;
         [SerializeField] private TankPlacementController placement;
         [SerializeField] private Text statusLabel;
-        [SerializeField] private Text levelLabel;
 
         private Coroutine polling;
         private bool configured;
@@ -28,7 +27,7 @@ namespace XRayTank
         private void OnEnable()
         {
             configured = !string.IsNullOrWhiteSpace(deviceId) && !string.IsNullOrWhiteSpace(deviceKey);
-            SetStatus(configured ? "Connecting to live tank data…" : "Live data not configured — add tank ID and device key in Inspector.");
+            SetStatus(configured ? "Connecting to live tank data…" : "Enter your tank ID and device key below.");
             if (configured) polling = StartCoroutine(PollLoop());
         }
 
