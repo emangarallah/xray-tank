@@ -6,7 +6,7 @@ namespace XRayTank
     public sealed class TankWaterLevel : MonoBehaviour
     {
         [SerializeField] private Transform waterMesh;
-        [SerializeField, Range(0f, 1f)] private float level = 0.5f;
+        [SerializeField, Range(0f, 1f)] private float level = 0f;
         [SerializeField] private float tankHeight = 1.8f;
         [SerializeField] private float tankBottomY = -0.9f;
 
