@@ -21,7 +21,7 @@ export default function Home(){
  useEffect(()=>{if(mode==="live")void refresh();},[mode]);
  const level=Math.max(0,Math.min(100,reading.levelPercent));
  const liters=Math.round(level*20);
- return <main className="shell">
+ return <main className="shell" dir={ar?"rtl":"ltr"}>
   <header className="topbar"><div className="brand"><div className="brand-mark">✦</div><div><strong>{t.brand}</strong><small>{t.sub}</small></div></div><div className="top-actions"><button className="lang" onClick={()=>setLang(ar?"en":"ar")}>{ar?"EN":"عربي"}</button><span className={"connection "+(mode==="live"?"live":"demo")}>{mode==="live"?"● LIVE":"● DEMO"}</span></div></header>
   <section className="hero"><div><span className="eyebrow">SMART WATER INTELLIGENCE</span><h1>{t.overview}<br/><em>{t.brand}</em></h1><p>{ar?"تابع مستوى المياه بصريًا، واستقبل قراءات الحساس لاسلكيًا.":"Visualize your water level and receive wireless sensor readings."}</p></div><div className="mode-switch"><button className={mode==="demo"?"selected":""} onClick={()=>setMode("demo")}>{t.demo}</button><button className={mode==="live"?"selected":""} onClick={()=>setMode("live")}>{t.live}</button></div></section>
   <section className="dashboard">
