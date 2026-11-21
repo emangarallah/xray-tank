@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS tanks (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL DEFAULT 'Home Tank',
   capacity_liters NUMERIC(12,2) NOT NULL DEFAULT 1000,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  owner_id TEXT
 );
 
 CREATE TABLE IF NOT EXISTS telemetry (
@@ -18,3 +19,6 @@ CREATE INDEX IF NOT EXISTS telemetry_device_time_idx ON telemetry(device_id, rec
 
 -- Register a device/tank before sending readings:
 -- INSERT INTO tanks (id, name, capacity_liters) VALUES ('tank-001', 'Main Tank', 2000);
+
+ALTER TABLE tanks ADD COLUMN IF NOT EXISTS owner_id TEXT;
+CREATE INDEX IF NOT EXISTS tanks_owner_created_idx ON tanks(owner_id, created_at DESC);
