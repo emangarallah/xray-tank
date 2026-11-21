@@ -14,6 +14,8 @@ export default function CameraAR({onClose,language}:Props){
  const [scale,setScale]=useState(1);
  const [level,setLevel]=useState(68);
  const levelRef=useRef(68);
+ const [autoLevel,setAutoLevel]=useState(true);
+ const directionRef=useRef(-1);
  const [position,setPosition]=useState({x:0,y:0});
  const [dragging,setDragging]=useState(false);
  const start=useRef({x:0,y:0,px:0,py:0});
@@ -21,6 +23,7 @@ export default function CameraAR({onClose,language}:Props){
  const copy=ar?{
   title:"وضع الكاميرا والواقع المعزز",hint:"اسمح باستخدام الكاميرا، ثم حرّك الخزان بإصبعك وكبّر حجمه.",
   close:"إغلاق",zoom:"حجم الخزان",start:"تشغيل الكاميرا",retry:"إعادة المحاولة",
+  autoOn:"إيقاف الحركة التلقائية",autoOff:"تشغيل الحركة التلقائية",autoHint:"يتغير مستوى الماء تلقائيًا بين 20٪ و90٪.",
   requesting:"جارٍ طلب إذن الكاميرا…",ready:"الكاميرا تعمل",permission:"اضغط تشغيل الكاميرا ووافق على الإذن من المتصفح.",
   secure:"يلزم فتح الموقع عبر HTTPS حتى يسمح المتصفح باستخدام الكاميرا.",
   denied:"تم رفض إذن الكاميرا. افتح إعدادات الموقع في المتصفح وغيّر إذن الكاميرا إلى سماح، ثم أعد المحاولة.",
@@ -29,6 +32,7 @@ export default function CameraAR({onClose,language}:Props){
  }:{
   title:"Camera & AR view",hint:"Allow camera access, then drag and resize the tank.",
   close:"Close",zoom:"Tank size",start:"Start camera",retry:"Try again",
+  autoOn:"Pause auto movement",autoOff:"Start auto movement",autoHint:"Water level changes automatically between 20% and 90%.",
   requesting:"Requesting camera permission…",ready:"Camera is running",permission:"Tap Start camera and allow access in your browser.",
   secure:"Camera access requires HTTPS. Open the secure website URL.",
   denied:"Camera permission was denied. Open this site's browser permissions, allow Camera, then try again.",
@@ -68,6 +72,7 @@ export default function CameraAR({onClose,language}:Props){
   }
  }
  useEffect(()=>{levelRef.current=level;},[level]);
+ useEffect(()=>{\n  if(!autoLevel)return;\n  const timer=window.setInterval(()=>{\n   setLevel(current=>{\n    let next=current+directionRef.current*0.35;\n    if(next<=20){next=20;directionRef.current=1;}\n    if(next>=90){next=90;directionRef.current=-1;}\n    levelRef.current=next;\n    return next;\n   });\n  },50);\n  return()=>window.clearInterval(timer);\n },[autoLevel]);
  useEffect(()=>()=>{stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;},[]);
  useEffect(()=>{
   const el=host.current;if(!el)return;
@@ -99,7 +104,7 @@ export default function CameraAR({onClose,language}:Props){
     {cameraState==="ready"&&<span className="ar-live">● {copy.ready}</span>}
    </div>
    <div className="ar-controls"><label>{copy.zoom}<input type="range" min=".55" max="1.5" step=".05" value={scale} onChange={e=>setScale(Number(e.target.value))}/></label><button onClick={()=>setPosition({x:0,y:0})}>{ar?"إعادة ضبط الموضع":"Reset position"}</button></div>
-   <div className="ar-level-control"><div><strong>{ar?"مستوى الماء داخل الخزان":"Water level inside tank"}</strong><b>{level}% · {Math.round(level*10)} {ar?"لتر":"L"}</b></div><input aria-label={ar?"تغيير مستوى الماء التجريبي":"Change simulated water level"} type="range" min="0" max="100" step="1" value={level} onChange={e=>{const next=Number(e.target.value);levelRef.current=next;setLevel(next)}}/><small>{ar?"حرّك المؤشر لمشاهدة الماء يرتفع وينخفض. هذه محاكاة وليست قراءة حساس.":"Move the slider to see the water rise and fall. Simulation only, not a sensor reading."}</small></div>
+   <div className="ar-level-control"><div><strong>{ar?"مستوى الماء داخل الخزان":"Water level inside tank"}</strong><b>{Math.round(level)}% · {Math.round(level*10)} {ar?"لتر":"L"}</b></div><button type="button" onClick={()=>setAutoLevel(v=>!v)}>{autoLevel?copy.autoOn:copy.autoOff}</button><input aria-label={ar?"تغيير مستوى الماء التجريبي":"Change simulated water level"} type="range" min="0" max="100" step="1" value={Math.round(level)} onChange={e=>{const next=Number(e.target.value);directionRef.current=next>=level?1:-1;levelRef.current=next;setLevel(next);setAutoLevel(false)}}/><small>{autoLevel?copy.autoHint:(ar?"يمكنك تحريك المؤشر يدويًا أو إعادة تشغيل الحركة التلقائية.":"Move the slider manually or resume automatic movement.")} {ar?"محاكاة وليست قراءة حساس.":"Simulation only, not a sensor reading."}</small></div>
    <p className="ar-disclaimer">{ar?"هذه معاينة كاميرا مع نموذج ثلاثي الأبعاد متراكب؛ تثبيت الخزان على الأسطح وتتبع الحركة تلقائيًا غير متاح في هذا الوضع.":"This is a camera preview with a 3D overlay; automatic surface detection and world-anchored tracking are not available in this mode."}</p>
   </div>
  </div>;
