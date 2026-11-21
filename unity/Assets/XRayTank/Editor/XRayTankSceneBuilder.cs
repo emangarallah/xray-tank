@@ -69,11 +69,11 @@ namespace XRayTank.Editor
             GameObject gate = new GameObject("Camera Permission Gate");
             ARCameraPermissionGate permission = gate.AddComponent<ARCameraPermissionGate>();
             SetPrivateField(permission, "arSessionRoot", sessionRoot);
-            SetPrivateField(permission, "permissionMessage", GameObject.Find("Camera Permission Hint"));
+            SetPrivateField(permission, "permissionMessage", GameObject.Find("AR Instructions").transform.Find("Camera Permission Hint").gameObject);
 
             ARPlaneGuide guide = originObject.GetComponent<ARPlaneGuide>();
             SetPrivateField(guide, "scanningHint", scanningHint);
-            SetPrivateField(guide, "placementHint", GameObject.Find("Placement Hint"));
+            SetPrivateField(guide, "placementHint", GameObject.Find("AR Instructions").transform.Find("Placement Hint").gameObject);
             PlayerSettings.iOS.cameraUsageDescription = "X-Ray Tank uses the camera to place a virtual tank in augmented reality.";
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android, ApiCompatibilityLevel.NET_Standard_2_1);
