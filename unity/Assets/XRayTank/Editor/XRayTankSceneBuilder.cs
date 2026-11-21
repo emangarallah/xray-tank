@@ -74,6 +74,7 @@ namespace XRayTank.Editor
             PlayerSettings.iOS.cameraUsageDescription = "X-Ray Tank uses the camera to place a virtual tank in augmented reality.";
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android, ApiCompatibilityLevel.NET_Standard_2_1);
+            sessionRoot.SetActive(false);
 
             string scenePath = Scenes + "/XRayTankAR.unity";
             EditorSceneManager.SaveScene(scene, scenePath);
