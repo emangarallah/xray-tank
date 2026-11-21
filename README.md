@@ -6,9 +6,10 @@ Wireless smart water-tank monitoring with a live 3D dashboard.
 - Next.js + TypeScript dashboard with Arabic/English interface.
 - Interactive Three.js tank model and clearly separated Demo / Live modes.
 - Neon PostgreSQL telemetry API for ESP32 over HTTPS.
+- Unity 6 mobile AR companion source with camera permission, ARCore/ARKit providers, plane detection, tank placement, and touch gestures.
 - SQL schema, environment template, and deployment notes.
 
-**Not included yet:** a compiled Unity AR mobile app or physical sensor hardware. Those require Unity build tooling and an ESP32/sensor. This web dashboard is the first deployable project layer.
+**Not included yet:** a compiled/signed Unity APK or IPA, or physical sensor hardware. The Unity AR source is in `unity/`; it must be opened, generated, built, and tested with Unity on physical devices. The web dashboard remains a separate web experience.
 
 ## Run locally
 1. Node.js 20+
