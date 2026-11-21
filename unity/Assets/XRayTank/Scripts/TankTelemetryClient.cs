@@ -38,7 +38,7 @@ namespace XRayTank
             polling = null;
             deviceId = (id ?? string.Empty).Trim();
             deviceKey = (key ?? string.Empty).Trim();
-            configured = !string.IsNullOrWhiteSpace(deviceId) && deviceKey.Length >= 32;
+            configured = !string.IsNullOrWhiteSpace(deviceId) && deviceKey.Length >= 32 && deviceKey.Length <= 128;
             if (!configured)
             {
                 SetStatus("Enter a valid tank ID and device key (at least 32 characters).");
