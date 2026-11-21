@@ -71,6 +71,7 @@ namespace XRayTank.Editor
 
             ARPlaneGuide guide = originObject.GetComponent<ARPlaneGuide>();
             SetPrivateField(guide, "scanningHint", scanningHint);
+            SetPrivateField(guide, "placementHint", GameObject.Find("Placement Hint"));
             PlayerSettings.iOS.cameraUsageDescription = "X-Ray Tank uses the camera to place a virtual tank in augmented reality.";
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android, ApiCompatibilityLevel.NET_Standard_2_1);
@@ -151,6 +152,21 @@ namespace XRayTank.Editor
             rect.anchorMax = new Vector2(0.95f, 0.96f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
+
+            GameObject placementObject = new GameObject("Placement Hint");
+            placementObject.transform.SetParent(canvasObject.transform, false);
+            Text placementText = placementObject.AddComponent<Text>();
+            placementText.text = "Surface found — tap to place the tank. Pinch to resize and twist to rotate.";
+            placementText.alignment = TextAnchor.UpperCenter;
+            placementText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            placementText.fontSize = 26;
+            placementText.color = Color.white;
+            RectTransform placementRect = placementText.rectTransform;
+            placementRect.anchorMin = new Vector2(0.05f, 0.82f);
+            placementRect.anchorMax = new Vector2(0.95f, 0.96f);
+            placementRect.offsetMin = Vector2.zero;
+            placementRect.offsetMax = Vector2.zero;
+            placementObject.SetActive(false);
             return textObject;
         }
 
