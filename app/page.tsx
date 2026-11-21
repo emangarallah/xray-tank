@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import TankScene from "@/components/TankScene";
 
 type Reading={levelPercent:number;distanceCm:number|null;temperatureC:number|null;recordedAt:string;deviceId:string};
-const demo:Reading={levelPercent:68,distanceCm:42.5,temperatureC:24.2,recordedAt:new Date().toISOString(),deviceId:"demo-tank"};\nconst emptyReading:Reading={levelPercent:0,distanceCm:null,temperatureC:null,recordedAt:"",deviceId:"tank-001"};
+const demo:Reading={levelPercent:68,distanceCm:42.5,temperatureC:24.2,recordedAt:new Date().toISOString(),deviceId:"demo-tank"};
+const emptyReading:Reading={levelPercent:0,distanceCm:null,temperatureC:null,recordedAt:"",deviceId:"tank-001"};
 export default function Home(){
  const [lang,setLang]=useState<"ar"|"en">("ar");
  const [mode,setMode]=useState<"demo"|"live">("demo");
@@ -19,7 +20,8 @@ export default function Home(){
  },[ar]);
  async function refresh(){setBusy(true);setError("");try{const res=await fetch("/api/telemetry?deviceId="+encodeURIComponent(deviceId),{cache:"no-store"});const data=await res.json();if(!res.ok)throw new Error(data.error||"Unable to load reading");if(!data.reading){setReading(emptyReading);setError(t.noData)}else setReading({levelPercent:Number(data.reading.level_percent),distanceCm:data.reading.distance_cm===null?null:Number(data.reading.distance_cm),temperatureC:data.reading.temperature_c===null?null:Number(data.reading.temperature_c),recordedAt:data.reading.recorded_at,deviceId});}catch(e){setReading(emptyReading);setError(e instanceof Error?e.message:"Network error")}finally{setBusy(false)}}
  useEffect(()=>{if(mode==="live")void refresh();},[mode]);
- const level=Math.max(0,Math.min(100,reading.levelPercent));\n function changeMode(next:"demo"|"live"){setMode(next);if(next==="demo"){setReading(demo);setError("")}}
+ const level=Math.max(0,Math.min(100,reading.levelPercent));
+ function changeMode(next:"demo"|"live"){setMode(next);if(next==="demo"){setReading(demo);setError("")}}
  const liters=Math.round(level*20);
  return <main className="shell" dir={ar?"rtl":"ltr"}>
   <header className="topbar"><div className="brand"><div className="brand-mark">✦</div><div><strong>{t.brand}</strong><small>{t.sub}</small></div></div><div className="top-actions"><button className="lang" onClick={()=>setLang(ar?"en":"ar")}>{ar?"EN":"عربي"}</button><span className={"connection "+(mode==="live"?"live":"demo")}>{mode==="live"?"● LIVE":"● DEMO"}</span></div></header>
