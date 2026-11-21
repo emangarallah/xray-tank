@@ -7,8 +7,8 @@
 const char* WIFI_SSID = "YOUR_WIFI";
 const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD";
 const char* API_URL = "https://YOUR-VERCEL-DOMAIN/api/telemetry";
-const char* DEVICE_KEY = "YOUR_DEVICE_API_KEY";
-const char* DEVICE_ID = "tank-001";
+const char* DEVICE_KEY = "PASTE_ONE_TIME_TANK_DEVICE_KEY";
+const char* DEVICE_ID = "PASTE_TANK_ID_FROM_DASHBOARD";
 
 // Paste the trusted root CA certificate for the HTTPS endpoint here.
 static const char ROOT_CA[] PROGMEM = R"EOF(
