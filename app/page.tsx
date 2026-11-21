@@ -45,6 +45,6 @@ export default function Home(){
   </section>
   <TankManager onSelect={(id)=>{setDeviceId(id);setMode("live");}} />
   <footer><span>© 2026 X-Ray Tank</span><span>{t.safe}</span></footer>
- {cameraOpen&&<CameraAR language={lang} onClose={()=>setCameraOpen(false)}/>}
+ {cameraOpen&&<CameraAR language={lang} onClose={()=>setCameraOpen(false)} levelPercent={level} capacityLiters={capacity} isLive={mode==="live"} distanceCm={reading.distanceCm} readingTime={reading.recordedAt} isFresh={!isStale&&!!lastSeen}/>}
  </main>
 }
