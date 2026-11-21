@@ -19,17 +19,31 @@ PASTE_TRUSTED_ROOT_CA_HERE
 
 constexpr int TRIG_PIN = 5;
 constexpr int ECHO_PIN = 18;
-constexpr float EMPTY_DISTANCE_CM = 150.0; // calibrate for your tank
-constexpr float FULL_DISTANCE_CM = 20.0;   // calibrate for your tank
-constexpr unsigned long SEND_INTERVAL_MS = 30000;
+// For a 200 cm tank: mount the probe 30 cm above the rim.
+// Measure these two distances physically before final use.
+constexpr float EMPTY_DISTANCE_CM = 230.0; // probe to bottom with tank empty
+constexpr float FULL_DISTANCE_CM = 30.0;   // probe to water surface at maximum fill
+constexpr unsigned long SEND_INTERVAL_MS = 10000;
 
 float readDistanceCm() {
-  digitalWrite(TRIG_PIN, LOW); delayMicroseconds(3);
-  digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-  const unsigned long duration = pulseIn(ECHO_PIN, HIGH, 30000UL);
-  if (duration == 0) return NAN;
-  return duration * 0.0343f / 2.0f;
+  float samples[5];
+  int count = 0;
+  for (int i = 0; i < 5; i++) {
+    digitalWrite(TRIG_PIN, LOW); delayMicroseconds(3);
+    digitalWrite(TRIG_PIN, HIGH); delayMicroseconds(20);
+    digitalWrite(TRIG_PIN, LOW);
+    const unsigned long duration = pulseIn(ECHO_PIN, HIGH, 30000UL);
+    const float cm = duration == 0 ? NAN : duration * 0.0343f / 2.0f;
+    if (isfinite(cm) && cm >= 25.0f && cm <= 450.0f) samples[count++] = cm;
+    delay(70);
+  }
+  if (count < 3) return NAN;
+  for (int i = 0; i < count - 1; i++) {
+    for (int j = i + 1; j < count; j++) {
+      if (samples[j] < samples[i]) { float t = samples[i]; samples[i] = samples[j]; samples[j] = t; }
+    }
+  }
+  return samples[count / 2];
 }
 
 void setup() {
@@ -49,7 +63,7 @@ void loop() {
   if (WiFi.status() != WL_CONNECTED) { WiFi.reconnect(); return; }
 
   const float distance = readDistanceCm();
-  if (!isfinite(distance) || distance < 2.0f || distance > 450.0f) {
+  if (!isfinite(distance) || distance < 25.0f || distance > 450.0f) {
     Serial.println("Invalid ultrasonic reading; skipped");
     return;
   }
