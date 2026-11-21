@@ -51,9 +51,7 @@ namespace XRayTank.Editor
             originObject.AddComponent<ARRaycastManager>();
             originObject.AddComponent<ARPlaneGuide>();
 
-            GameObject placement = new GameObject("Tank Placement Controller");
-            placement.transform.SetParent(originObject.transform, false);
-            TankPlacementController placer = placement.AddComponent<TankPlacementController>();
+            TankPlacementController placer = originObject.AddComponent<TankPlacementController>();
             SetPrivateField(placer, "tankPrefab", tankPrefab);
             SetPrivateField(placer, "arCamera", camera);
 
