@@ -1,13 +1,42 @@
-# Unity AR companion scaffold
+# X-Ray Tank — Native AR companion
 
-The native AR client is a companion to the web dashboard. It requires Unity 6, AR Foundation, ARCore XR Plugin (Android), and ARKit XR Plugin (iOS). The scripts in this folder provide plane-based placement of a tank prefab and a level update hook.
+This folder is the Unity mobile AR project root. It adds a live camera-backed AR scene for Android and iOS. It is separate from the Next.js website: opening the website does not automatically open the phone camera.
 
-This folder is a source scaffold, not a compiled mobile application. To finish the mobile build:
-1. Create/open a Unity 6 project and install the packages above using Package Manager.
-2. Add these scripts under `Assets/XRayTank/Scripts`.
-3. Create/import a realistic tank prefab with a water child mesh, add a collider, and assign the water transform in `TankWaterLevel`.
-4. Add an AR Session and XR Origin (AR) with AR Plane Manager and AR Raycast Manager.
-5. Assign the tank prefab to `TankPlacementController`.
-6. Configure Android/iOS camera permissions, XR plug-in providers, signing, and test on physical devices.
+## Requirements
+- Unity Editor 6000.0 (Unity 6).
+- Android Build Support with Android SDK/NDK and OpenJDK for Android builds.
+- iOS Build Support + macOS/Xcode for iOS builds.
+- A physical ARCore-supported Android phone or ARKit-supported iPhone for real camera/plane-tracking tests.
+- Camera permission granted by the user.
 
-AR plane placement positions the virtual tank in the room; it does not identify water inside an opaque physical tank. Connect a calibrated sensor API before showing real measurements.
+The package manifest pins AR Foundation, ARCore XR Plugin, and ARKit XR Plugin to 6.0.3. Unity's platform provider plug-ins must be enabled for the matching build target. Official setup guide: https://developers.google.com/ar/develop/unity-arf/getting-started-ar-foundation
+
+## Open and generate the scene
+1. Clone this repository.
+2. In Unity Hub, choose **Add project from disk** and select the `unity` folder (not the repository root).
+3. Open with Unity 6. Let Package Manager resolve Packages/manifest.json.
+4. In Unity, choose **X-Ray Tank → Build Starter AR Scene**.
+5. Open Assets/XRayTank/Scenes/XRayTankAR.unity.
+6. In **Edit → Project Settings → XR Plug-in Management**, install/enable the provider if prompted. Enable **ARCore** on Android and **ARKit** on iOS.
+7. Switch Build Settings to Android or iOS, set the package/bundle identifier, and build to a physical device.
+
+The scene builder creates an AR Session and XR Origin with AR Camera Manager + AR Camera Background (live camera feed), plane detection, AR raycasting, a camera permission gate, a starter tank prefab, and tap/pinch/rotation gestures.
+
+## Using the camera
+Launch the built app on the phone and accept camera permission. The camera view is the full-screen background. Move the phone slowly until a horizontal plane is detected, then tap the floor/table to place the virtual tank. Tap another detected plane to reposition it. Use two fingers to resize and rotate the model.
+
+If permission is denied, enable Camera access for X-Ray Tank in the phone's system settings and reopen the app.
+
+## Current limitations
+- The generated tank is a starter 3D model, not a finished photorealistic manufactured tank asset.
+- AR placement and camera rendering are implemented in source, but this repository has not yet been built or tested on a physical Android/iOS device. A signed APK/IPA is not included.
+- The web dashboard's live readings are not yet authenticated and wired into this Unity AR scene. Do not present demo values as sensor measurements.
+- AR only places a virtual tank in the room. It does not see through an opaque real tank or measure water by camera. Real measurements still require a calibrated external sensor sending telemetry to the backend.
+- This is monitoring only, not a safety controller. Use an independent rated overflow cutoff and electrical protection.
+
+## Source scripts
+- Assets/XRayTank/Scripts/ARCameraPermissionGate.cs
+- Assets/XRayTank/Scripts/ARPlaneGuide.cs
+- Assets/XRayTank/Scripts/TankPlacementController.cs
+- Assets/XRayTank/Scripts/TankWaterLevel.cs
+- Assets/XRayTank/Editor/XRayTankSceneBuilder.cs
