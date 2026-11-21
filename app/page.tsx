@@ -7,7 +7,7 @@ import CameraAR from "@/components/CameraAR";
 
 type Reading={levelPercent:number;distanceCm:number|null;temperatureC:number|null;recordedAt:string;deviceId:string};
 type HistoryPoint={level_percent:number|string;recorded_at:string};
-const demo:Reading={levelPercent:68,distanceCm:42.5,temperatureC:24.2,recordedAt:new Date().toISOString(),deviceId:"demo-tank"};
+const demo:Reading={levelPercent:68,distanceCm:94,temperatureC:24.2,recordedAt:new Date().toISOString(),deviceId:"demo-tank"};
 const emptyReading:Reading={levelPercent:0,distanceCm:null,temperatureC:null,recordedAt:"",deviceId:"tank-001"};
 export default function Home(){
  const [lang,setLang]=useState<"ar"|"en">("ar");
