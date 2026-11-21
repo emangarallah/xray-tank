@@ -61,7 +61,10 @@ namespace XRayTank.Editor
             ARCameraPermissionGate permission = gate.AddComponent<ARCameraPermissionGate>();
             SetPrivateField(permission, "arSessionRoot", sessionRoot);
 
-            CreateHintCanvas();
+            GameObject scanningHint = CreateHintCanvas();
+            ARPlaneGuide guide = originObject.GetComponent<ARPlaneGuide>();
+            SetPrivateField(guide, "scanningHint", scanningHint);
+            PlayerSettings.iOS.cameraUsageDescription = "X-Ray Tank uses the camera to place a virtual tank in augmented reality.";
 
             EditorSceneManager.SaveScene(scene, Scenes + "/XRayTankAR.unity");
             AssetDatabase.SaveAssets();
@@ -106,7 +109,7 @@ namespace XRayTank.Editor
             return prefab;
         }
 
-        private static void CreateHintCanvas()
+        private static GameObject CreateHintCanvas()
         {
             GameObject canvasObject = new GameObject("AR Instructions");
             Canvas canvas = canvasObject.AddComponent<Canvas>();
@@ -127,10 +130,19 @@ namespace XRayTank.Editor
             rect.anchorMax = new Vector2(0.95f, 0.96f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
+            return textObject;
         }
 
         private static Material MakeMaterial(string name, Color color, bool transparent)
         {
+            string path = Materials + "/" + name + ".mat";
+            Material existing = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (existing != null)
+            {
+                existing.color = color;
+                EditorUtility.SetDirty(existing);
+                return existing;
+            }
             Shader shader = Shader.Find("Standard");
             Material material = new Material(shader) { name = name, color = color };
             if (transparent)
@@ -144,7 +156,7 @@ namespace XRayTank.Editor
                 material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                 material.renderQueue = 3000;
             }
-            AssetDatabase.CreateAsset(material, Materials + "/" + name + ".mat");
+            AssetDatabase.CreateAsset(material, path);
             return material;
         }
 
