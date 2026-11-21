@@ -22,3 +22,6 @@ CREATE INDEX IF NOT EXISTS telemetry_device_time_idx ON telemetry(device_id, rec
 
 ALTER TABLE tanks ADD COLUMN IF NOT EXISTS owner_id TEXT;
 CREATE INDEX IF NOT EXISTS tanks_owner_created_idx ON tanks(owner_id, created_at DESC);
+
+ALTER TABLE tanks ADD COLUMN IF NOT EXISTS device_key_hash TEXT;
+CREATE INDEX IF NOT EXISTS tanks_device_key_hash_idx ON tanks(device_key_hash) WHERE device_key_hash IS NOT NULL;
