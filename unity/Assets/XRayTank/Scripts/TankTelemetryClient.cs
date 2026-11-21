@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -77,7 +78,8 @@ namespace XRayTank
                     TankWaterLevel water = placement.PlacedTank.GetComponentInChildren<TankWaterLevel>();
                     if (water != null) water.SetLevelPercent(level);
                 }
-                SetStatus("LIVE • Water: " + level.ToString("0.0") + "% • " + payload.reading.recorded_at + (payload.reading.temperature_c != 0f ? " • " + payload.reading.temperature_c.ToString("0.0") + " °C" : ""));
+                bool stale = !DateTimeOffset.TryParse(payload.reading.recorded_at, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTimeOffset recordedAt) || (DateTimeOffset.UtcNow - recordedAt.ToUniversalTime()).TotalMinutes > 5;
+                SetStatus((stale ? "STALE • " : "LIVE • ") + "Water: " + level.ToString("0.0") + "% • " + payload.reading.recorded_at + (payload.reading.temperature_c != 0f ? " • " + payload.reading.temperature_c.ToString("0.0") + " °C" : ""));
             }
         }
 
