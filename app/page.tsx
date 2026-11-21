@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import TankScene from "@/components/TankScene";
+import TankManager from "@/components/TankManager";
+import AccountMenu from "@/components/AccountMenu";
 
 type Reading={levelPercent:number;distanceCm:number|null;temperatureC:number|null;recordedAt:string;deviceId:string};
 type HistoryPoint={level_percent:number|string;recorded_at:string};
@@ -30,7 +32,7 @@ export default function Home(){
  const lastSeen=reading.recordedAt?new Date(reading.recordedAt):null;
  const isStale=mode==="live"&&(!lastSeen||Date.now()-lastSeen.getTime()>5*60*1000);
  return <main className="shell" dir={ar?"rtl":"ltr"}>
-  <header className="topbar"><div className="brand"><div className="brand-mark">✦</div><div><strong>{t.brand}</strong><small>{t.sub}</small></div></div><div className="top-actions"><a className="lang" href="/auth">{ar?"الحساب":"Account"}</a><button className="lang" onClick={()=>setLang(ar?"en":"ar")}>{ar?"EN":"عربي"}</button><span className={"connection "+(mode==="live"?"live":"demo")}>{mode==="live"?(isStale?"● STALE":"● LIVE"):"● DEMO"}</span></div></header>
+  <header className="topbar"><div className="brand"><div className="brand-mark">✦</div><div><strong>{t.brand}</strong><small>{t.sub}</small></div></div><div className="top-actions"><AccountMenu/><button className="lang" onClick={()=>setLang(ar?"en":"ar")}>{ar?"EN":"عربي"}</button><span className={"connection "+(mode==="live"?"live":"demo")}>{mode==="live"?(isStale?"● STALE":"● LIVE"):"● DEMO"}</span></div></header>
   <section className="hero"><div><span className="eyebrow">SMART WATER INTELLIGENCE</span><h1>{t.overview}<br/><em>{t.brand}</em></h1><p>{ar?"تابع مستوى المياه بصريًا، واستقبل قراءات الحساس لاسلكيًا.":"Visualize your water level and receive wireless sensor readings."}</p></div><div className="mode-switch"><button className={mode==="demo"?"selected":""} onClick={()=>changeMode("demo")}>{t.demo}</button><button className={mode==="live"?"selected":""} onClick={()=>changeMode("live")}>{t.live}</button></div></section>
   <section className="dashboard">
    <div className="visual-card"><div className="card-head"><div><span className="eyebrow">{t.status}</span><h2>{level<25?t.low:t.normal}</h2></div><span className="pulse-dot"/></div><TankScene level={level}/><div className="tank-footer"><div><small>{t.level}</small><strong>{level.toFixed(1)}<i>%</i></strong></div><div className="progress"><span style={{width:level+"%"}}/></div></div></div>
@@ -39,6 +41,7 @@ export default function Home(){
   <section className="bottom-grid"><div className="panel"><div className="panel-title"><div><span className="eyebrow">{t.analytics}</span><h3>{t.usage}</h3></div><span className="spark">⌁</span></div><div className="bars">{chartValues.map((v,i)=><div className="bar-wrap" key={i}><div className="bar" style={{height:Math.max(v,2)+"%"}}/><small>{mode==="live"&&history.length?new Date(history.slice(-7)[i].recorded_at).toLocaleTimeString(ar?"ar":"en",{hour:"2-digit",minute:"2-digit"}):["M","T","W","T","F","S","S"][i]}</small></div>)}</div><p className="muted">{mode==="live"?(history.length?`${history.length} ${ar?"قراءة خلال آخر 24 ساعة":"readings in the last 24 hours"}`:t.noData):t.days}</p></div>
    <div className="panel device-panel"><div className="panel-title"><div><span className="eyebrow">{mode==="demo"?t.demo:t.live}</span><h3>{ar?"مصدر البيانات":"Data source"}</h3></div><span className="device-icon">⌁</span></div><p className="source-note">{mode==="demo"?t.demoNote:t.liveNote}</p><label>{t.device}</label><div className="device-row"><input value={deviceId} onChange={e=>setDeviceId(e.target.value)} disabled={mode==="demo"}/><button onClick={()=>void refresh()} disabled={busy||mode==="demo"}>{busy?"…":t.refresh}</button></div>{error&&<p className="error">{error}</p>}<small className="muted">{mode==="live"&&lastSeen?`${ar?"آخر قراءة: ":"Last reading: "}${lastSeen.toLocaleString(ar?"ar":"en")}${isStale?(ar?" — البيانات قديمة":" — data is stale"):""}`:""}</small></div>
   </section>
+  <TankManager onSelect={(id)=>{setDeviceId(id);setMode("live");}} />
   <footer><span>© 2026 X-Ray Tank</span><span>{t.safe}</span></footer>
  </main>
 }
