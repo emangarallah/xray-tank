@@ -4,35 +4,73 @@ import type { PointerEvent } from "react";
 import * as THREE from "three";
 
 type Props={ onClose:()=>void; language:"ar"|"en" };
+type CameraState="idle"|"requesting"|"ready"|"error";
 export default function CameraAR({onClose,language}:Props){
  const video=useRef<HTMLVideoElement>(null);
  const host=useRef<HTMLDivElement>(null);
  const stream=useRef<MediaStream|null>(null);
+ const [cameraState,setCameraState]=useState<CameraState>("idle");
  const [error,setError]=useState("");
  const [scale,setScale]=useState(1);
  const [position,setPosition]=useState({x:0,y:0});
  const [dragging,setDragging]=useState(false);
  const start=useRef({x:0,y:0,px:0,py:0});
  const ar=language==="ar";
- useEffect(()=>{
-  let active=true;
-  async function startCamera(){
+ const copy=ar?{
+  title:"وضع الكاميرا والواقع المعزز",hint:"اسمح باستخدام الكاميرا، ثم حرّك الخزان بإصبعك وكبّر حجمه.",
+  close:"إغلاق",zoom:"حجم الخزان",start:"تشغيل الكاميرا",retry:"إعادة المحاولة",
+  requesting:"جارٍ طلب إذن الكاميرا…",ready:"الكاميرا تعمل",permission:"اضغط تشغيل الكاميرا ووافق على الإذن من المتصفح.",
+  secure:"يلزم فتح الموقع عبر HTTPS حتى يسمح المتصفح باستخدام الكاميرا.",
+  denied:"تم رفض إذن الكاميرا. افتح إعدادات الموقع في المتصفح وغيّر إذن الكاميرا إلى سماح، ثم أعد المحاولة.",
+  missing:"لم يتم العثور على كاميرا متاحة على هذا الجهاز.",
+  generic:"تعذر تشغيل الكاميرا. تحقق من الإذن وأن الكاميرا ليست مستخدمة في تطبيق آخر."
+ }:{
+  title:"Camera & AR view",hint:"Allow camera access, then drag and resize the tank.",
+  close:"Close",zoom:"Tank size",start:"Start camera",retry:"Try again",
+  requesting:"Requesting camera permission…",ready:"Camera is running",permission:"Tap Start camera and allow access in your browser.",
+  secure:"Camera access requires HTTPS. Open the secure website URL.",
+  denied:"Camera permission was denied. Open this site's browser permissions, allow Camera, then try again.",
+  missing:"No camera was found on this device.",
+  generic:"Could not start the camera. Check permission and make sure another app is not using it."
+ };
+ async function requestCamera(){
+  setError("");
+  if(!window.isSecureContext){setCameraState("error");setError(copy.secure);return;}
+  if(!navigator.mediaDevices?.getUserMedia){setCameraState("error");setError(copy.generic);return;}
+  setCameraState("requesting");
+  try{
+   stream.current?.getTracks().forEach(track=>track.stop());
+   let media:MediaStream;
    try{
-    if(!navigator.mediaDevices?.getUserMedia) throw new Error(ar?"المتصفح لا يدعم تشغيل الكاميرا أو أن الاتصال ليس HTTPS.":"Camera access requires a supported browser and HTTPS.");
-    const media=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}});
-    if(!active){media.getTracks().forEach(t=>t.stop());return;}
-    stream.current=media;
-    if(video.current){video.current.srcObject=media;await video.current.play();}
-   }catch(e){setError(e instanceof Error?e.message:"Camera permission was denied.");}
+    media=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:1280},height:{ideal:720}}});
+   }catch(firstError){
+    const name=firstError instanceof DOMException?firstError.name:"";
+    if(name==="NotFoundError"||name==="OverconstrainedError"){
+     media=await navigator.mediaDevices.getUserMedia({audio:false,video:true});
+    }else throw firstError;
+   }
+   stream.current=media;
+   if(!video.current) throw new Error("Video element is not ready");
+   video.current.srcObject=media;
+   await video.current.play();
+   setCameraState("ready");
+  }catch(e){
+   const name=e instanceof DOMException?e.name:"";
+   let message=copy.generic;
+   if(name==="NotAllowedError"||name==="PermissionDeniedError"||name==="SecurityError")message=copy.denied;
+   else if(name==="NotFoundError"||name==="DevicesNotFoundError")message=copy.missing;
+   else if(name==="NotReadableError"||name==="TrackStartError")message=copy.generic;
+   else if(e instanceof Error&&e.message.includes("HTTPS"))message=copy.secure;
+   stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;
+   setError(message);setCameraState("error");
   }
-  void startCamera();
-  return()=>{active=false;stream.current?.getTracks().forEach(t=>t.stop());stream.current=null;};
- },[ar]);
+ }
+ useEffect(()=>()=>{stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;},[]);
  useEffect(()=>{
   const el=host.current;if(!el)return;
   const scene=new THREE.Scene();
   const camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(4,3,6);camera.lookAt(0,0,0);
-  const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(el.clientWidth,el.clientHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;el.appendChild(renderer.domElement);
+  const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(el.clientWidth,el.clientHeight);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;el.appendChild(renderer.domElement);
   scene.add(new THREE.HemisphereLight(0xd8f5ff,0x153040,2));
   const light=new THREE.DirectionalLight(0xffffff,3);light.position.set(4,7,5);scene.add(light);
   const tank=new THREE.Group();scene.add(tank);
@@ -45,16 +83,18 @@ export default function CameraAR({onClose,language}:Props){
   const ring=new THREE.Mesh(new THREE.TorusGeometry(1.07,.025,8,48),rimMat);ring.position.y=.8;tank.add(ring);
   let frame=0,raf=0;
   const resize=()=>{camera.aspect=el.clientWidth/Math.max(el.clientHeight,1);camera.updateProjectionMatrix();renderer.setSize(el.clientWidth,el.clientHeight);};
-  const animate=()=>{raf=requestAnimationFrame(animate);const h=1.8;water.scale.y=h;water.position.y=-.5;top.position.y=.4; tank.rotation.y=Math.sin(frame*.006)*.045;frame++;renderer.render(scene,camera);};
+  const animate=()=>{raf=requestAnimationFrame(animate);water.scale.y=1.8;water.position.y=-.5;top.position.y=.4;tank.rotation.y=Math.sin(frame*.006)*.045;frame++;renderer.render(scene,camera);};
   animate();window.addEventListener("resize",resize);
   return()=>{cancelAnimationFrame(raf);window.removeEventListener("resize",resize);renderer.dispose();scene.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();const m=o.material;if(Array.isArray(m))m.forEach(x=>x.dispose());else m.dispose();}});if(el.contains(renderer.domElement))el.removeChild(renderer.domElement);};
  },[]);
  function down(e:PointerEvent<HTMLDivElement>){setDragging(true);start.current={x:e.clientX,y:e.clientY,px:position.x,py:position.y};e.currentTarget.setPointerCapture(e.pointerId);}
  function move(e:PointerEvent<HTMLDivElement>){if(!dragging)return;setPosition({x:start.current.px+e.clientX-start.current.x,y:start.current.py+e.clientY-start.current.y});}
- const copy=ar?{title:"وضع الكاميرا والواقع المعزز",hint:"حرّك الخزان بإصبعك وضعه فوق المكان المطلوب. كبّر أو صغّر حجمه.",close:"إغلاق",zoom:"حجم الخزان",permission:"اسمح بالوصول إلى الكاميرا لبدء العرض."}:{title:"Camera & AR view",hint:"Drag the tank to position it in your camera view. Adjust its size below.",close:"Close",zoom:"Tank size",permission:"Allow camera access to start."};
  return <div className="ar-backdrop" role="dialog" aria-modal="true" aria-label={copy.title}>
   <div className="ar-window"><header className="ar-header"><div><strong>{copy.title}</strong><small>{copy.hint}</small></div><button onClick={onClose} aria-label={copy.close}>×</button></header>
-   <div className="ar-stage"><video ref={video} autoPlay muted playsInline className="ar-video"/><div className="ar-grid"/><div className="ar-model" style={{transform:`translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px)) scale(${scale})`}} onPointerDown={down} onPointerMove={move} onPointerUp={()=>setDragging(false)} onPointerCancel={()=>setDragging(false)}><div ref={host} className="ar-three"/></div>{error&&<div className="ar-error">{error}<br/>{copy.permission}</div>}<span className="ar-live">● {ar?"معاينة الكاميرا":"CAMERA PREVIEW"}</span></div>
+   <div className="ar-stage"><video ref={video} autoPlay muted playsInline className="ar-video"/><div className="ar-grid"/><div className="ar-model" style={{transform:`translate(calc(-50% + ${position.x}px), calc(-50% + ${position.y}px)) scale(${scale})`}} onPointerDown={down} onPointerMove={move} onPointerUp={()=>setDragging(false)} onPointerCancel={()=>setDragging(false)}><div ref={host} className="ar-three"/></div>
+    {cameraState!=="ready"&&<div className="ar-camera-prompt"><strong>{cameraState==="requesting"?copy.requesting:cameraState==="error"?copy.retry:copy.permission}</strong>{error&&<p>{error}</p>}<button onClick={()=>void requestCamera()} disabled={cameraState==="requesting"}>{cameraState==="requesting"?"…":cameraState==="error"?copy.retry:copy.start}</button></div>}
+    {cameraState==="ready"&&<span className="ar-live">● {copy.ready}</span>}
+   </div>
    <div className="ar-controls"><label>{copy.zoom}<input type="range" min=".55" max="1.5" step=".05" value={scale} onChange={e=>setScale(Number(e.target.value))}/></label><button onClick={()=>setPosition({x:0,y:0})}>{ar?"إعادة ضبط الموضع":"Reset position"}</button></div>
    <p className="ar-disclaimer">{ar?"هذه معاينة كاميرا مع نموذج ثلاثي الأبعاد متراكب؛ تثبيت الخزان على الأسطح وتتبع الحركة تلقائيًا غير متاح في هذا الوضع.":"This is a camera preview with a 3D overlay; automatic surface detection and world-anchored tracking are not available in this mode."}</p>
   </div>
