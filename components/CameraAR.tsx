@@ -12,6 +12,8 @@ export default function CameraAR({onClose,language}:Props){
  const [cameraState,setCameraState]=useState<CameraState>("idle");
  const [error,setError]=useState("");
  const [scale,setScale]=useState(1);
+ const [level,setLevel]=useState(68);
+ const levelRef=useRef(68);
  const [position,setPosition]=useState({x:0,y:0});
  const [dragging,setDragging]=useState(false);
  const start=useRef({x:0,y:0,px:0,py:0});
@@ -65,6 +67,7 @@ export default function CameraAR({onClose,language}:Props){
    setError(message);setCameraState("error");
   }
  }
+ useEffect(()=>{levelRef.current=level;},[level]);
  useEffect(()=>()=>{stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;},[]);
  useEffect(()=>{
   const el=host.current;if(!el)return;
@@ -80,10 +83,10 @@ export default function CameraAR({onClose,language}:Props){
   const base=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,.14,48),rimMat);base.position.y=-1.4;tank.add(base);
   const water=new THREE.Mesh(new THREE.CylinderGeometry(.99,.99,1,48),new THREE.MeshPhysicalMaterial({color:0x079bd5,transparent:true,opacity:.86,roughness:.12,metalness:.1,side:THREE.DoubleSide}));tank.add(water);
   const top=new THREE.Mesh(new THREE.CircleGeometry(.98,48),new THREE.MeshPhysicalMaterial({color:0x55d8f6,transparent:true,opacity:.7,side:THREE.DoubleSide}));top.rotation.x=-Math.PI/2;tank.add(top);
-  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.07,.025,8,48),rimMat);ring.position.y=.8;tank.add(ring);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.07,.025,8,48),new THREE.MeshStandardMaterial({color:0x55e7ff,emissive:0x087eaa,emissiveIntensity:1.4}));ring.position.y=-1.4+2.8*.68;tank.add(ring);
   let frame=0,raf=0;
   const resize=()=>{camera.aspect=el.clientWidth/Math.max(el.clientHeight,1);camera.updateProjectionMatrix();renderer.setSize(el.clientWidth,el.clientHeight);};
-  const animate=()=>{raf=requestAnimationFrame(animate);water.scale.y=1.8;water.position.y=-.5;top.position.y=.4;tank.rotation.y=Math.sin(frame*.006)*.045;frame++;renderer.render(scene,camera);};
+  const animate=()=>{raf=requestAnimationFrame(animate);const pct=levelRef.current/100;const waterHeight=Math.max(.025,2.65*pct);water.scale.y=waterHeight;water.position.y=-1.33+waterHeight/2;top.position.y=-1.33+waterHeight;ring.position.y=-1.4+2.8*pct;tank.rotation.y=Math.sin(frame*.006)*.045;frame++;renderer.render(scene,camera);};
   animate();window.addEventListener("resize",resize);
   return()=>{cancelAnimationFrame(raf);window.removeEventListener("resize",resize);renderer.dispose();scene.traverse(o=>{if(o instanceof THREE.Mesh){o.geometry.dispose();const m=o.material;if(Array.isArray(m))m.forEach(x=>x.dispose());else m.dispose();}});if(el.contains(renderer.domElement))el.removeChild(renderer.domElement);};
  },[]);
