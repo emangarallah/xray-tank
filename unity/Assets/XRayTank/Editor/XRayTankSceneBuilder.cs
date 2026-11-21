@@ -57,6 +57,7 @@ namespace XRayTank.Editor
             SetPrivateField(placer, "tankPrefab", tankPrefab);
             SetPrivateField(placer, "arCamera", camera);
 
+            GameObject scanningHint = CreateHintCanvas();
             Text telemetryStatus = CreateStatusText();
             TankTelemetryClient telemetry = originObject.AddComponent<TankTelemetryClient>();
             SetPrivateField(telemetry, "placement", placer);
@@ -68,7 +69,6 @@ namespace XRayTank.Editor
             ARCameraPermissionGate permission = gate.AddComponent<ARCameraPermissionGate>();
             SetPrivateField(permission, "arSessionRoot", sessionRoot);
 
-            GameObject scanningHint = CreateHintCanvas();
             ARPlaneGuide guide = originObject.GetComponent<ARPlaneGuide>();
             SetPrivateField(guide, "scanningHint", scanningHint);
             PlayerSettings.iOS.cameraUsageDescription = "X-Ray Tank uses the camera to place a virtual tank in augmented reality.";
