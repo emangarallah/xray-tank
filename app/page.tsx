@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import TankScene from "@/components/TankScene";
 import TankManager from "@/components/TankManager";
 import AccountMenu from "@/components/AccountMenu";
+import CameraAR from "@/components/CameraAR";
 
 type Reading={levelPercent:number;distanceCm:number|null;temperatureC:number|null;recordedAt:string;deviceId:string};
 type HistoryPoint={level_percent:number|string;recorded_at:string};
@@ -16,6 +17,7 @@ export default function Home(){
  const [capacity,setCapacity]=useState(2000);
  const [history,setHistory]=useState<HistoryPoint[]>([]);
  const [busy,setBusy]=useState(false);
+ const [cameraOpen,setCameraOpen]=useState(false);
  const [error,setError]=useState("");
  const ar=lang==="ar";
  const t=useMemo(()=>ar?{
@@ -33,7 +35,7 @@ export default function Home(){
  const isStale=mode==="live"&&(!lastSeen||Date.now()-lastSeen.getTime()>5*60*1000);
  return <main className="shell" dir={ar?"rtl":"ltr"}>
   <header className="topbar"><div className="brand"><div className="brand-mark">✦</div><div><strong>{t.brand}</strong><small>{t.sub}</small></div></div><div className="top-actions"><AccountMenu/><button className="lang" onClick={()=>setLang(ar?"en":"ar")}>{ar?"EN":"عربي"}</button><span className={"connection "+(mode==="live"?"live":"demo")}>{mode==="live"?(isStale?"● STALE":"● LIVE"):"● DEMO"}</span></div></header>
-  <section className="hero"><div><span className="eyebrow">SMART WATER INTELLIGENCE</span><h1>{t.overview}<br/><em>{t.brand}</em></h1><p>{ar?"تابع مستوى المياه بصريًا، واستقبل قراءات الحساس لاسلكيًا.":"Visualize your water level and receive wireless sensor readings."}</p></div><div className="mode-switch"><button className={mode==="demo"?"selected":""} onClick={()=>changeMode("demo")}>{t.demo}</button><button className={mode==="live"?"selected":""} onClick={()=>changeMode("live")}>{t.live}</button></div></section>
+  <section className="hero"><div><span className="eyebrow">SMART WATER INTELLIGENCE</span><h1>{t.overview}<br/><em>{t.brand}</em></h1><p>{ar?"تابع مستوى المياه بصريًا، واستقبل قراءات الحساس لاسلكيًا.":"Visualize your water level and receive wireless sensor readings."}</p></div><div className="hero-actions"><button className="camera-launch" onClick={()=>setCameraOpen(true)}>{ar?"◉ افتح الكاميرا":"◉ Open camera AR"}</button><div className="mode-switch"><button className={mode==="demo"?"selected":""} onClick={()=>changeMode("demo")}>{t.demo}</button><button className={mode==="live"?"selected":""} onClick={()=>changeMode("live")}>{t.live}</button></div></div></section>
   <section className="dashboard">
    <div className="visual-card"><div className="card-head"><div><span className="eyebrow">{t.status}</span><h2>{level<25?t.low:t.normal}</h2></div><span className="pulse-dot"/></div><TankScene level={level}/><div className="tank-footer"><div><small>{t.level}</small><strong>{level.toFixed(1)}<i>%</i></strong></div><div className="progress"><span style={{width:level+"%"}}/></div></div></div>
    <div className="stats-grid"><article className="stat-card accent"><span className="stat-icon">◉</span><small>{t.level}</small><strong>{level.toFixed(1)}%</strong><div className="mini-track"><span style={{width:level+"%"}}/></div></article><article className="stat-card"><span className="stat-icon">◌</span><small>{t.remaining}</small><strong>{liters.toLocaleString()} <i>L</i></strong><small>{t.capacity}: {capacity.toLocaleString()} L</small></article><article className="stat-card"><span className="stat-icon">⌁</span><small>{t.temperature}</small><strong>{reading.temperatureC===null?"—":reading.temperatureC.toFixed(1)} <i>°C</i></strong><small>{ar?"حرارة محيطة بالحساس":"Sensor ambient temperature"}</small></article><article className="stat-card"><span className="stat-icon">↕</span><small>{t.distance}</small><strong>{reading.distanceCm===null?"—":reading.distanceCm.toFixed(1)} <i>cm</i></strong><small>{ar?"من الحساس إلى سطح الماء":"Sensor to water surface"}</small></article></div>
@@ -43,5 +45,5 @@ export default function Home(){
   </section>
   <TankManager onSelect={(id)=>{setDeviceId(id);setMode("live");}} />
   <footer><span>© 2026 X-Ray Tank</span><span>{t.safe}</span></footer>
- </main>
+ {cameraOpen&&<CameraAR language={lang} onClose={()=>setCameraOpen(false)}/>}\n </main>
 }
