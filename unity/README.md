@@ -1,42 +1,47 @@
-# X-Ray Tank — Native AR companion
+# X-Ray Tank — Unity AR mobile companion
 
-This folder is the Unity mobile AR project root. It adds a live camera-backed AR scene for Android and iOS. It is separate from the Next.js website: opening the website does not automatically open the phone camera.
+This is the native Android/iOS companion. It is separate from the Next.js website: the website itself does not open the mobile AR camera.
 
 ## Requirements
 - Unity Editor 6000.0 (Unity 6).
-- Android Build Support with Android SDK/NDK and OpenJDK for Android builds.
-- iOS Build Support + macOS/Xcode for iOS builds.
-- A physical ARCore-supported Android phone or ARKit-supported iPhone for real camera/plane-tracking tests.
-- Camera permission granted by the user.
+- Android Build Support (SDK, NDK, OpenJDK) for Android builds.
+- iOS Build Support and macOS/Xcode for iOS builds.
+- An ARCore-supported Android phone or ARKit-supported iPhone for physical-device testing.
+- Internet access for live telemetry.
 
-The package manifest pins AR Foundation, ARCore XR Plugin, and ARKit XR Plugin to 6.0.3. Unity's platform provider plug-ins must be enabled for the matching build target. Official setup guide: https://developers.google.com/ar/develop/unity-arf/getting-started-ar-foundation
+AR Foundation, ARCore XR Plugin, and ARKit XR Plugin are pinned to 6.0.3, matching Unity 6000.0. Unity requires matching AR Foundation and platform-provider package versions. See https://docs.unity.com/en-us/engine/6000.0/manual/xr/support/support-packages and https://docs.unity.cn/6000.0/Documentation/Manual/xr-support-packages.html
 
-## Open and generate the scene
-1. Clone this repository.
-2. In Unity Hub, choose **Add project from disk** and select the `unity` folder (not the repository root).
-3. Open with Unity 6. Let Package Manager resolve Packages/manifest.json.
-4. In Unity, choose **X-Ray Tank → Build Starter AR Scene**.
-5. Open Assets/XRayTank/Scenes/XRayTankAR.unity.
-6. In **Edit → Project Settings → XR Plug-in Management**, install/enable the provider if prompted. Enable **ARCore** on Android and **ARKit** on iOS.
-7. Switch Build Settings to Android or iOS, set the package/bundle identifier, and build to a physical device.
+## Create the AR scene
+1. Clone the repository.
+2. In Unity Hub, choose **Add project from disk** and select this `unity` folder.
+3. Open with Unity 6 and allow Package Manager to resolve the manifest.
+4. In Unity choose **X-Ray Tank → Build Starter AR Scene**.
+5. Open `Assets/XRayTank/Scenes/XRayTankAR.unity` if it is not already open.
+6. In **Edit → Project Settings → XR Plug-in Management**, install/enable XR Plug-in Management if prompted. Enable **ARCore** for Android and **ARKit** for iOS.
+7. Select the **XR Origin** object. On its `TankTelemetryClient` component, set `deviceId` and `deviceKey` using the values from your tank creation screen. Do not commit real device keys into Git.
+8. Select Android or iOS in Build Settings, set a unique application/bundle identifier, and build to a physical device.
 
-The scene builder creates an AR Session and XR Origin with AR Camera Manager + AR Camera Background (live camera feed), plane detection, AR raycasting, a camera permission gate, a starter tank prefab, and tap/pinch/rotation gestures.
+The generated scene contains AR Session, XR Origin, AR Camera Manager + AR Camera Background, horizontal plane detection, raycasting, a camera permission gate, a starter transparent tank prefab, and touch placement/scale/rotation gestures. The generated scene is added to Build Settings automatically.
 
-## Using the camera
-Launch the built app on the phone and accept camera permission. The camera view is the full-screen background. Move the phone slowly until a horizontal plane is detected, then tap the floor/table to place the virtual tank. Tap another detected plane to reposition it. Use two fingers to resize and rotate the model.
+## Use the camera
+Launch the built app and grant camera permission. The live camera image appears behind the AR scene. Move the phone slowly to scan a flat floor/table, then tap the detected surface to place the virtual tank. Tap another detected surface to reposition it; pinch and twist with two fingers to scale and rotate.
 
-If permission is denied, enable Camera access for X-Ray Tank in the phone's system settings and reopen the app.
+## Live telemetry
+The `TankTelemetryClient` polls `https://xray-tank-emicode.vercel.app/api/telemetry?deviceId=YOUR_TANK_ID` every 15 seconds using the tank's one-time device key in the `x-device-key` header. The API checks the SHA-256 hash stored for that tank and returns only that tank's latest reading. When a reading arrives, the placed model's water mesh is updated and the UI shows the live percentage and timestamp.
 
-## Current limitations
-- The generated tank is a starter 3D model, not a finished photorealistic manufactured tank asset.
-- AR placement and camera rendering are implemented in source, but this repository has not yet been built or tested on a physical Android/iOS device. A signed APK/IPA is not included.
-- The web dashboard's live readings are not yet authenticated and wired into this Unity AR scene. Do not present demo values as sensor measurements.
-- AR only places a virtual tank in the room. It does not see through an opaque real tank or measure water by camera. Real measurements still require a calibrated external sensor sending telemetry to the backend.
-- This is monitoring only, not a safety controller. Use an independent rated overflow cutoff and electrical protection.
+To configure it, create a tank in the web dashboard, copy its device ID and one-time device key, then enter both in the `TankTelemetryClient` Inspector fields before building. If the key is lost, rotate it in the dashboard and update the app configuration. Keep device keys private; a key embedded in a distributed mobile app can be extracted by a determined user, so this is a prototype credential scheme rather than a hardened consumer-device identity system.
 
-## Source scripts
-- Assets/XRayTank/Scripts/ARCameraPermissionGate.cs
-- Assets/XRayTank/Scripts/ARPlaneGuide.cs
-- Assets/XRayTank/Scripts/TankPlacementController.cs
-- Assets/XRayTank/Scripts/TankWaterLevel.cs
-- Assets/XRayTank/Editor/XRayTankSceneBuilder.cs
+## Important limitations and safety
+- The included tank is a procedural starter model, not a finished photorealistic product asset.
+- Source code has not yet been built or tested on physical Android/iOS hardware; no signed APK/IPA is included.
+- The live telemetry client and API source are connected, but an actual live reading requires a registered tank and a calibrated physical sensor sending data. Until then the UI will say it is waiting or not configured.
+- AR places a virtual tank in the room. A phone camera cannot see through an opaque tank or measure its water level. Real measurements require the external calibrated sensor.
+- This prototype is monitoring only. Never use it as the sole pump, dry-run, or overflow protection; use independent rated safety cutoffs and electrical protection.
+
+## Main scripts
+- `Assets/XRayTank/Scripts/ARCameraPermissionGate.cs` — camera permission.
+- `Assets/XRayTank/Scripts/ARPlaneGuide.cs` — surface scan guidance.
+- `Assets/XRayTank/Scripts/TankPlacementController.cs` — tap placement and gestures.
+- `Assets/XRayTank/Scripts/TankWaterLevel.cs` — water mesh visualization.
+- `Assets/XRayTank/Scripts/TankTelemetryClient.cs` — authenticated live polling.
+- `Assets/XRayTank/Editor/XRayTankSceneBuilder.cs` — scene and prefab generator.
