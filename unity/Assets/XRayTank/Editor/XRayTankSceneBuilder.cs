@@ -4,6 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using Unity.XR.CoreUtils;
 using UnityEngine.XR.ARFoundation;
 
@@ -139,6 +140,7 @@ namespace XRayTank.Editor
             scaler.referenceResolution = new Vector2(1080f, 1920f);
             scaler.matchWidthOrHeight = 0.5f;
             canvasObject.AddComponent<GraphicRaycaster>();
+            new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
 
             GameObject textObject = new GameObject("Scanning Hint");
             textObject.transform.SetParent(canvasObject.transform, false);
