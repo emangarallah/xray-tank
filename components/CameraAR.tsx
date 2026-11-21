@@ -3,19 +3,17 @@ import { useEffect, useRef, useState } from "react";
 import type { PointerEvent } from "react";
 import * as THREE from "three";
 
-type Props={ onClose:()=>void; language:"ar"|"en" };
+type Props={ onClose:()=>void; language:"ar"|"en"; levelPercent:number; capacityLiters:number; isLive:boolean; distanceCm:number|null; readingTime:string; isFresh:boolean };
 type CameraState="idle"|"requesting"|"ready"|"error";
-export default function CameraAR({onClose,language}:Props){
+export default function CameraAR({onClose,language,levelPercent,capacityLiters,isLive,distanceCm,readingTime,isFresh}:Props){
  const video=useRef<HTMLVideoElement>(null);
  const host=useRef<HTMLDivElement>(null);
  const stream=useRef<MediaStream|null>(null);
  const [cameraState,setCameraState]=useState<CameraState>("idle");
  const [error,setError]=useState("");
  const [scale,setScale]=useState(1);
- const [level,setLevel]=useState(68);
- const levelRef=useRef(68);
- const [autoLevel,setAutoLevel]=useState(true);
- const directionRef=useRef(-1);
+ const level=levelPercent;
+ const levelRef=useRef(levelPercent);
  const [position,setPosition]=useState({x:0,y:0});
  const [dragging,setDragging]=useState(false);
  const start=useRef({x:0,y:0,px:0,py:0});
@@ -71,20 +69,7 @@ export default function CameraAR({onClose,language}:Props){
    setError(message);setCameraState("error");
   }
  }
- useEffect(()=>{levelRef.current=level;},[level]);
- useEffect(()=>{
-  if(!autoLevel)return;
-  const timer=window.setInterval(()=>{
-   setLevel(current=>{
-    let next=current+directionRef.current*0.35;
-    if(next<=20){next=20;directionRef.current=1;}
-    if(next>=90){next=90;directionRef.current=-1;}
-    levelRef.current=next;
-    return next;
-   });
-  },50);
-  return()=>window.clearInterval(timer);
- },[autoLevel]);
+ useEffect(()=>{levelRef.current=levelPercent;},[levelPercent]);
  useEffect(()=>()=>{stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;},[]);
  useEffect(()=>{
   const el=host.current;if(!el)return;
@@ -116,8 +101,8 @@ export default function CameraAR({onClose,language}:Props){
     {cameraState==="ready"&&<span className="ar-live">● {copy.ready}</span>}
    </div>
    <div className="ar-controls"><label>{copy.zoom}<input type="range" min=".55" max="1.5" step=".05" value={scale} onChange={e=>setScale(Number(e.target.value))}/></label><button onClick={()=>setPosition({x:0,y:0})}>{ar?"إعادة ضبط الموضع":"Reset position"}</button></div>
-   <div className="ar-level-control"><div><strong>{ar?"مستوى الماء داخل الخزان":"Water level inside tank"}</strong><b>{Math.round(level)}% · {Math.round(level*10)} {ar?"لتر":"L"}</b></div><button type="button" onClick={()=>setAutoLevel(v=>!v)}>{autoLevel?copy.autoOn:copy.autoOff}</button><input aria-label={ar?"تغيير مستوى الماء التجريبي":"Change simulated water level"} type="range" min="0" max="100" step="1" value={Math.round(level)} onChange={e=>{const next=Number(e.target.value);directionRef.current=next>=level?1:-1;levelRef.current=next;setLevel(next);setAutoLevel(false)}}/><small>{autoLevel?copy.autoHint:(ar?"يمكنك تحريك المؤشر يدويًا أو إعادة تشغيل الحركة التلقائية.":"Move the slider manually or resume automatic movement.")} {ar?"محاكاة وليست قراءة حساس.":"Simulation only, not a sensor reading."}</small></div>
-   <p className="ar-disclaimer">{ar?"هذه معاينة كاميرا مع نموذج ثلاثي الأبعاد متراكب؛ تثبيت الخزان على الأسطح وتتبع الحركة تلقائيًا غير متاح في هذا الوضع.":"This is a camera preview with a 3D overlay; automatic surface detection and world-anchored tracking are not available in this mode."}</p>
+   <div className="ar-level-control"><div><strong>{ar?"مستوى الماء داخل الخزان":"Water level inside tank"}</strong><b>{isLive&&readingTime?`${Math.round(level)}% · ${Math.round(capacityLiters*level/100).toLocaleString()} ${ar?"لتر":"L"}`:(ar?"لا توجد قراءة حساس":"No sensor reading")}</b></div><small>{isLive?(isFresh?(ar?"● قراءة حقيقية من ESP32":"● Live ESP32 sensor reading"):(ar?"⚠ لا توجد قراءة حديثة؛ تحقق من اتصال ESP32":"⚠ No recent reading; check ESP32 connection")):(ar?"وضع العرض التجريبي — ليست قراءة حقيقية":"Demo mode — not a real sensor reading")}{distanceCm!==null&&isLive?` · ${ar?"المسافة":"Distance"} ${distanceCm.toFixed(1)} cm`:""}</small></div>
+   <p className="ar-disclaimer">{ar?"هذه معاينة كاميرا مع نموذج ثلاثي الأبعاد متراكب؛ مستوى الماء يتبع آخر قراءة ESP32 عند اختيار وضع الحساس. تثبيت الخزان وتتبع الأسطح تلقائيًا غير متاح.":"This is a camera preview with a 3D overlay; the water level follows the latest ESP32 reading in sensor mode. Automatic surface detection and world anchoring are not available."}</p>
   </div>
  </div>;
 }
