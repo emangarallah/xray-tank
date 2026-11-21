@@ -61,7 +61,8 @@ namespace XRayTank.Editor
             TankTelemetryClient telemetry = originObject.AddComponent<TankTelemetryClient>();
             SetPrivateField(telemetry, "placement", placer);
             SetPrivateField(telemetry, "statusLabel", telemetryStatus);
-            SetPrivateField(telemetry, "levelLabel", telemetryStatus);
+            GameObject canvasObject = GameObject.Find("AR Instructions");
+            CreateTelemetryPanel(canvasObject.transform, telemetry);
 
             GameObject gate = new GameObject("Camera Permission Gate");
             ARCameraPermissionGate permission = gate.AddComponent<ARCameraPermissionGate>();
@@ -156,13 +157,93 @@ namespace XRayTank.Editor
             label.fontSize = 22;
             label.color = Color.white;
             RectTransform rect = label.rectTransform;
-            rect.anchorMin = new Vector2(0.04f, 0.04f);
-            rect.anchorMax = new Vector2(0.96f, 0.17f);
+            rect.anchorMin = new Vector2(0.04f, 0.01f);
+            rect.anchorMax = new Vector2(0.96f, 0.08f);
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
             return label;
         }
 
+        private static void CreateTelemetryPanel(Transform parent, TankTelemetryClient telemetry)
+        {
+            InputField idInput = CreateInputField(parent, "Tank ID", "Enter tank ID", 0.25f, 0.32f, false);
+            InputField keyInput = CreateInputField(parent, "Device Key", "Paste one-time device key", 0.16f, 0.23f, true);
+            GameObject buttonObject = new GameObject("Connect Telemetry", typeof(RectTransform), typeof(Image), typeof(Button));
+            buttonObject.transform.SetParent(parent, false);
+            RectTransform buttonRect = buttonObject.GetComponent<RectTransform>();
+            buttonRect.anchorMin = new Vector2(0.2f, 0.09f);
+            buttonRect.anchorMax = new Vector2(0.8f, 0.15f);
+            buttonRect.offsetMin = Vector2.zero;
+            buttonRect.offsetMax = Vector2.zero;
+            Image image = buttonObject.GetComponent<Image>();
+            image.color = new Color(0.05f, 0.42f, 0.78f, 0.95f);
+            Button button = buttonObject.GetComponent<Button>();
+            GameObject captionObject = new GameObject("Button Label", typeof(RectTransform), typeof(Text));
+            captionObject.transform.SetParent(buttonObject.transform, false);
+            Text caption = captionObject.GetComponent<Text>();
+            caption.text = "CONNECT TO MY TANK";
+            caption.alignment = TextAnchor.MiddleCenter;
+            caption.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            caption.fontSize = 22;
+            caption.fontStyle = FontStyle.Bold;
+            caption.color = Color.white;
+            RectTransform captionRect = caption.rectTransform;
+            captionRect.anchorMin = Vector2.zero;
+            captionRect.anchorMax = Vector2.one;
+            captionRect.offsetMin = Vector2.zero;
+            captionRect.offsetMax = Vector2.zero;
+            TelemetrySetupPanel panel = parent.gameObject.AddComponent<TelemetrySetupPanel>();
+            SetPrivateField(panel, "tankIdInput", idInput);
+            SetPrivateField(panel, "deviceKeyInput", keyInput);
+            SetPrivateField(panel, "connectButton", button);
+            SetPrivateField(panel, "telemetryClient", telemetry);
+        }
+
+        private static InputField CreateInputField(Transform parent, string name, string placeholder, float minY, float maxY, bool password)
+        {
+            GameObject fieldObject = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(InputField));
+            fieldObject.transform.SetParent(parent, false);
+            RectTransform rect = fieldObject.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0.06f, minY);
+            rect.anchorMax = new Vector2(0.94f, maxY);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            Image background = fieldObject.GetComponent<Image>();
+            background.color = new Color(1f, 1f, 1f, 0.92f);
+            InputField input = fieldObject.GetComponent<InputField>();
+            GameObject textObject = new GameObject("Text", typeof(RectTransform), typeof(Text));
+            textObject.transform.SetParent(fieldObject.transform, false);
+            Text valueText = textObject.GetComponent<Text>();
+            valueText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            valueText.fontSize = 20;
+            valueText.color = Color.black;
+            valueText.alignment = TextAnchor.MiddleLeft;
+            RectTransform textRect = valueText.rectTransform;
+            textRect.anchorMin = new Vector2(0.03f, 0f);
+            textRect.anchorMax = new Vector2(0.97f, 1f);
+            textRect.offsetMin = Vector2.zero;
+            textRect.offsetMax = Vector2.zero;
+            GameObject placeholderObject = new GameObject("Placeholder", typeof(RectTransform), typeof(Text));
+            placeholderObject.transform.SetParent(fieldObject.transform, false);
+            Text placeholderText = placeholderObject.GetComponent<Text>();
+            placeholderText.text = placeholder;
+            placeholderText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            placeholderText.fontSize = 19;
+            placeholderText.fontStyle = FontStyle.Italic;
+            placeholderText.color = new Color(0.35f, 0.35f, 0.35f, 1f);
+            placeholderText.alignment = TextAnchor.MiddleLeft;
+            RectTransform placeholderRect = placeholderText.rectTransform;
+            placeholderRect.anchorMin = new Vector2(0.03f, 0f);
+            placeholderRect.anchorMax = new Vector2(0.97f, 1f);
+            placeholderRect.offsetMin = Vector2.zero;
+            placeholderRect.offsetMax = Vector2.zero;
+            input.textComponent = valueText;
+            input.placeholder = placeholderText;
+            input.targetGraphic = background;
+            input.contentType = password ? InputField.ContentType.Password : InputField.ContentType.Standard;
+            input.lineType = InputField.LineType.SingleLine;
+            return input;
+        }
         private static Material MakeMaterial(string name, Color color, bool transparent)
         {
             string path = Materials + "/" + name + ".mat";
