@@ -2,14 +2,17 @@
 import { useEffect, useMemo, useState } from "react";
 import TankScene from "@/components/TankScene";
 
-type Reading={levelPercent:number;distanceCm:number|null;temperatureC:number|null;recordedAt:string;deviceId:string};\ntype HistoryPoint={level_percent:number|string;recorded_at:string};
+type Reading={levelPercent:number;distanceCm:number|null;temperatureC:number|null;recordedAt:string;deviceId:string};
+type HistoryPoint={level_percent:number|string;recorded_at:string};
 const demo:Reading={levelPercent:68,distanceCm:42.5,temperatureC:24.2,recordedAt:new Date().toISOString(),deviceId:"demo-tank"};
 const emptyReading:Reading={levelPercent:0,distanceCm:null,temperatureC:null,recordedAt:"",deviceId:"tank-001"};
 export default function Home(){
  const [lang,setLang]=useState<"ar"|"en">("ar");
  const [mode,setMode]=useState<"demo"|"live">("demo");
  const [reading,setReading]=useState<Reading>(demo);
- const [deviceId,setDeviceId]=useState("tank-001");\n const [capacity,setCapacity]=useState(2000);\n const [history,setHistory]=useState<HistoryPoint[]>([]);
+ const [deviceId,setDeviceId]=useState("tank-001");
+ const [capacity,setCapacity]=useState(2000);
+ const [history,setHistory]=useState<HistoryPoint[]>([]);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState("");
  const ar=lang==="ar";
@@ -22,7 +25,10 @@ export default function Home(){
  useEffect(()=>{if(mode!=="live")return;void refresh();const timer=window.setInterval(()=>void refresh(),15000);return()=>window.clearInterval(timer);},[mode,deviceId]);
  const level=Math.max(0,Math.min(100,reading.levelPercent));
  function changeMode(next:"demo"|"live"){setMode(next);if(next==="demo"){setReading(demo);setError("")}}
- const liters=Math.round(capacity*level/100);\n const chartValues=mode==="live"?(history.length?history.slice(-7).map(p=>Number(p.level_percent)):[0,0,0,0,0,0,0]):[38,52,45,64,57,72,68];\n const lastSeen=reading.recordedAt?new Date(reading.recordedAt):null;\n const isStale=mode==="live"&&(!lastSeen||Date.now()-lastSeen.getTime()>5*60*1000);
+ const liters=Math.round(capacity*level/100);
+ const chartValues=mode==="live"?(history.length?history.slice(-7).map(p=>Number(p.level_percent)):[0,0,0,0,0,0,0]):[38,52,45,64,57,72,68];
+ const lastSeen=reading.recordedAt?new Date(reading.recordedAt):null;
+ const isStale=mode==="live"&&(!lastSeen||Date.now()-lastSeen.getTime()>5*60*1000);
  return <main className="shell" dir={ar?"rtl":"ltr"}>
   <header className="topbar"><div className="brand"><div className="brand-mark">✦</div><div><strong>{t.brand}</strong><small>{t.sub}</small></div></div><div className="top-actions"><button className="lang" onClick={()=>setLang(ar?"en":"ar")}>{ar?"EN":"عربي"}</button><span className={"connection "+(mode==="live"?"live":"demo")}>{mode==="live"?(isStale?"● STALE":"● LIVE"):"● DEMO"}</span></div></header>
   <section className="hero"><div><span className="eyebrow">SMART WATER INTELLIGENCE</span><h1>{t.overview}<br/><em>{t.brand}</em></h1><p>{ar?"تابع مستوى المياه بصريًا، واستقبل قراءات الحساس لاسلكيًا.":"Visualize your water level and receive wireless sensor readings."}</p></div><div className="mode-switch"><button className={mode==="demo"?"selected":""} onClick={()=>changeMode("demo")}>{t.demo}</button><button className={mode==="live"?"selected":""} onClick={()=>changeMode("live")}>{t.live}</button></div></section>
