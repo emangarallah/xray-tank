@@ -16,7 +16,7 @@ export async function GET(req:NextRequest){
  try{
   const sql=db();
   const deviceKey=req.headers.get("x-device-key")||"";
-  let tanks;
+  let tanks: any[];
   if(deviceKey.length>=32&&deviceKey.length<=128){
    const hash=createHash("sha256").update(deviceKey).digest("hex");
    tanks=await sql`SELECT id,name,capacity_liters FROM tanks WHERE id=${id} AND device_key_hash=${hash} LIMIT 1`;
