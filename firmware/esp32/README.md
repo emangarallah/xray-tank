@@ -1,22 +1,26 @@
 # ESP32 sensor node
 
-This example is for an ESP32 + JSN-SR04T ultrasonic distance sensor. It sends readings to the X-Ray Tank HTTPS API over Wi-Fi; no cable connects the phone to the tank.
+This firmware sends calibrated water-level measurements to X-Ray Tank over Wi-Fi/HTTPS. The phone does not connect to the sensor by wire.
 
-## Wiring (sensor to ESP32)
-- VCC -> 5V/VIN (check your sensor board's rated supply)
-- GND -> GND
-- TRIG -> GPIO 5
-- ECHO -> GPIO 18 **through a voltage divider or level shifter**. ESP32 GPIO is not 5V tolerant.
-- Mount the sensor above the water, pointing down. Keep it protected from condensation and splashes.
+## Wiring
+- JSN-SR04T VCC -> suitable 5V supply (verify the exact board revision).
+- GND -> common GND.
+- TRIG -> ESP32 GPIO 5.
+- ECHO -> GPIO 18 **through a voltage divider or logic-level shifter**. ESP32 GPIO is not 5V tolerant.
+- Power the ESP32 and sensor from a suitable regulated supply. Protect the electronics from moisture.
 
-The ESP32 board needs its own suitable power supply. This is independent of the phone and sensor signal is wireless.
+## Provision the device
+1. Create an account at https://xray-tank-emicode.vercel.app/auth.
+2. From the dashboard, create a tank. The app creates a unique tank ID and a random device key.
+3. Copy the device key immediately. It is shown once only.
+4. Set WIFI_SSID, WIFI_PASSWORD, API_URL, DEVICE_ID, and DEVICE_KEY in the sketch.
+5. Add the trusted root CA certificate for the production HTTPS host. TLS verification must remain enabled.
+6. Flash the ESP32 and confirm HTTP status 201 in Serial Monitor.
 
-## Configure
-Install the **ArduinoJson** library from Arduino Library Manager. Open `xray_tank_esp32.ino` and set Wi-Fi name/password, API URL, device key, and the root CA certificate for your deployed HTTPS host. Never commit real credentials or production device keys. The sketch intentionally refuses insecure TLS.
+The device key is unique per tank. Do not share it or commit it to Git. If exposed, it must be considered compromised.
 
-Register the tank in Neon first:
-`INSERT INTO tanks (id, name, capacity_liters) VALUES ('tank-001', 'Main Tank', 2000);`
+## Calibration
+Measure the sensor-to-water distance with the tank empty and full. Set EMPTY_DISTANCE_CM and FULL_DISTANCE_CM accordingly. This starter assumes a vertical tank and a flat water surface. Verify at several known levels before relying on the percentage. Foam, turbulence, condensation, angled surfaces, and sensor dead zones can cause bad readings.
 
-Calibrate empty/full distances and tank geometry before using level values. This starter assumes a vertical tank and maps measured distance between those two calibration points to a percentage. Test with known water levels. Ultrasonic sensors can misread foam, turbulence, condensation, or angled surfaces.
-
-Do not connect this prototype to a pump or rely on it for overflow prevention.
+## Safety
+This is a monitoring prototype. Do not use it as the sole protection for a pump, dry-run condition, or overflow. Use an independent, certified high-level cutoff and electrical protection.
