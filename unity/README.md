@@ -18,8 +18,7 @@ AR Foundation, ARCore XR Plugin, and ARKit XR Plugin are pinned to 6.0.3, matchi
 4. In Unity choose **X-Ray Tank → Build Starter AR Scene**.
 5. Open `Assets/XRayTank/Scenes/XRayTankAR.unity` if it is not already open.
 6. In **Edit → Project Settings → XR Plug-in Management**, install/enable XR Plug-in Management if prompted. Enable **ARCore** for Android and **ARKit** for iOS.
-7. Select the **XR Origin** object. On its `TankTelemetryClient` component, set `deviceId` and `deviceKey` using the values from your tank creation screen. Do not commit real device keys into Git.
-8. Select Android or iOS in Build Settings, set a unique application/bundle identifier, and build to a physical device.
+7. Select Android or iOS in Build Settings, set a unique application/bundle identifier, and build to a physical device.
 
 The generated scene contains AR Session, XR Origin, AR Camera Manager + AR Camera Background, horizontal plane detection, raycasting, a camera permission gate, a starter transparent tank prefab, and touch placement/scale/rotation gestures. The generated scene is added to Build Settings automatically.
 
@@ -29,7 +28,7 @@ Launch the built app and grant camera permission. The live camera image appears 
 ## Live telemetry
 The `TankTelemetryClient` polls `https://xray-tank-emicode.vercel.app/api/telemetry?deviceId=YOUR_TANK_ID` every 15 seconds using the tank's one-time device key in the `x-device-key` header. The API checks the SHA-256 hash stored for that tank and returns only that tank's latest reading. When a reading arrives, the placed model's water mesh is updated and the UI shows the live percentage and timestamp.
 
-To configure it, create a tank in the web dashboard, copy its device ID and one-time device key, then enter both in the `TankTelemetryClient` Inspector fields before building. If the key is lost, rotate it in the dashboard and update the app configuration. Keep device keys private; a key embedded in a distributed mobile app can be extracted by a determined user, so this is a prototype credential scheme rather than a hardened consumer-device identity system.
+To configure it, create a tank in the web dashboard and copy its device ID and one-time device key. Open the AR app, enter the tank ID and paste the device key into the on-screen fields, then tap **CONNECT TO MY TANK**. The key field is cleared after submission. If the key is lost, rotate it in the dashboard and enter the new key. Keep device keys private; a key entered into a distributed mobile app can still be extracted by a determined user, so this is a prototype credential scheme rather than a hardened consumer-device identity system.
 
 ## Important limitations and safety
 - The included tank is a procedural starter model, not a finished photorealistic product asset.
@@ -44,4 +43,5 @@ To configure it, create a tank in the web dashboard, copy its device ID and one-
 - `Assets/XRayTank/Scripts/TankPlacementController.cs` — tap placement and gestures.
 - `Assets/XRayTank/Scripts/TankWaterLevel.cs` — water mesh visualization.
 - `Assets/XRayTank/Scripts/TankTelemetryClient.cs` — authenticated live polling.
+- `Assets/XRayTank/Scripts/TelemetrySetupPanel.cs` — on-device credential form.
 - `Assets/XRayTank/Editor/XRayTankSceneBuilder.cs` — scene and prefab generator.
