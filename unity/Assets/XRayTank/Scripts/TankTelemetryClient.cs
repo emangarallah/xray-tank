@@ -77,8 +77,7 @@ namespace XRayTank
                     TankWaterLevel water = placement.PlacedTank.GetComponentInChildren<TankWaterLevel>();
                     if (water != null) water.SetLevelPercent(level);
                 }
-                if (levelLabel != null) levelLabel.text = "Water level: " + level.ToString("0.0") + "%";
-                SetStatus("LIVE • " + payload.reading.recorded_at + (payload.reading.temperature_c != 0f ? " • " + payload.reading.temperature_c.ToString("0.0") + " °C" : ""));
+                SetStatus("LIVE • Water: " + level.ToString("0.0") + "% • " + payload.reading.recorded_at + (payload.reading.temperature_c != 0f ? " • " + payload.reading.temperature_c.ToString("0.0") + " °C" : ""));
             }
         }
 
