@@ -49,6 +49,7 @@ namespace XRayTank.Editor
 
             ARPlaneManager planeManager = originObject.AddComponent<ARPlaneManager>();
             planeManager.planePrefab = planePrefab;
+            planeManager.requestedDetectionMode = UnityEngine.XR.ARSubsystems.PlaneDetectionMode.Horizontal;
             originObject.AddComponent<ARRaycastManager>();
             originObject.AddComponent<ARPlaneGuide>();
 
@@ -72,9 +73,10 @@ namespace XRayTank.Editor
             PlayerSettings.iOS.cameraUsageDescription = "X-Ray Tank uses the camera to place a virtual tank in augmented reality.";
             PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
             PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android, ApiCompatibilityLevel.NET_Standard_2_1);
-            PlayerSettings.SetPropertyInt("activeInputHandler", 2, BuildTargetGroup.Android);
 
-            EditorSceneManager.SaveScene(scene, Scenes + "/XRayTankAR.unity");
+            string scenePath = Scenes + "/XRayTankAR.unity";
+            EditorSceneManager.SaveScene(scene, scenePath);
+            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(scenePath, true) };
             AssetDatabase.SaveAssets();
             Selection.activeObject = tankPrefab;
             EditorUtility.DisplayDialog("X-Ray Tank", "AR scene and starter tank prefab created. Open Scenes/XRayTankAR and configure XR Plug-in Management for Android/iOS.", "OK");
