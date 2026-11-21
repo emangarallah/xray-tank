@@ -12,7 +12,7 @@ This example is for an ESP32 + JSN-SR04T ultrasonic distance sensor. It sends re
 The ESP32 board needs its own suitable power supply. This is independent of the phone and sensor signal is wireless.
 
 ## Configure
-Open `xray_tank_esp32.ino` and set Wi-Fi name/password, API URL, device key, and the root CA certificate for your deployed HTTPS host. Never commit real credentials or production device keys. The sketch intentionally refuses insecure TLS.
+Install the **ArduinoJson** library from Arduino Library Manager. Open `xray_tank_esp32.ino` and set Wi-Fi name/password, API URL, device key, and the root CA certificate for your deployed HTTPS host. Never commit real credentials or production device keys. The sketch intentionally refuses insecure TLS.
 
 Register the tank in Neon first:
 `INSERT INTO tanks (id, name, capacity_liters) VALUES ('tank-001', 'Main Tank', 2000);`
