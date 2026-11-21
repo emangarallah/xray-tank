@@ -72,7 +72,19 @@ export default function CameraAR({onClose,language}:Props){
   }
  }
  useEffect(()=>{levelRef.current=level;},[level]);
- useEffect(()=>{\n  if(!autoLevel)return;\n  const timer=window.setInterval(()=>{\n   setLevel(current=>{\n    let next=current+directionRef.current*0.35;\n    if(next<=20){next=20;directionRef.current=1;}\n    if(next>=90){next=90;directionRef.current=-1;}\n    levelRef.current=next;\n    return next;\n   });\n  },50);\n  return()=>window.clearInterval(timer);\n },[autoLevel]);
+ useEffect(()=>{
+  if(!autoLevel)return;
+  const timer=window.setInterval(()=>{
+   setLevel(current=>{
+    let next=current+directionRef.current*0.35;
+    if(next<=20){next=20;directionRef.current=1;}
+    if(next>=90){next=90;directionRef.current=-1;}
+    levelRef.current=next;
+    return next;
+   });
+  },50);
+  return()=>window.clearInterval(timer);
+ },[autoLevel]);
  useEffect(()=>()=>{stream.current?.getTracks().forEach(track=>track.stop());stream.current=null;},[]);
  useEffect(()=>{
   const el=host.current;if(!el)return;
