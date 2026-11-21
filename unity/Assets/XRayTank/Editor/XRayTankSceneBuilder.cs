@@ -68,6 +68,7 @@ namespace XRayTank.Editor
             GameObject gate = new GameObject("Camera Permission Gate");
             ARCameraPermissionGate permission = gate.AddComponent<ARCameraPermissionGate>();
             SetPrivateField(permission, "arSessionRoot", sessionRoot);
+            SetPrivateField(permission, "permissionMessage", GameObject.Find("Camera Permission Hint"));
 
             ARPlaneGuide guide = originObject.GetComponent<ARPlaneGuide>();
             SetPrivateField(guide, "scanningHint", scanningHint);
@@ -167,6 +168,21 @@ namespace XRayTank.Editor
             placementRect.offsetMin = Vector2.zero;
             placementRect.offsetMax = Vector2.zero;
             placementObject.SetActive(false);
+
+            GameObject permissionObject = new GameObject("Camera Permission Hint");
+            permissionObject.transform.SetParent(canvasObject.transform, false);
+            Text permissionText = permissionObject.AddComponent<Text>();
+            permissionText.text = "Camera permission is required. Allow camera access to start AR.";
+            permissionText.alignment = TextAnchor.MiddleCenter;
+            permissionText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            permissionText.fontSize = 25;
+            permissionText.color = Color.white;
+            RectTransform permissionRect = permissionText.rectTransform;
+            permissionRect.anchorMin = new Vector2(0.08f, 0.43f);
+            permissionRect.anchorMax = new Vector2(0.92f, 0.57f);
+            permissionRect.offsetMin = Vector2.zero;
+            permissionRect.offsetMax = Vector2.zero;
+            permissionObject.SetActive(false);
             return textObject;
         }
 
