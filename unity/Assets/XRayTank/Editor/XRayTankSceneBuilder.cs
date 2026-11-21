@@ -35,6 +35,7 @@ namespace XRayTank.Editor
             sessionRoot.AddComponent<ARSession>();
 
             GameObject originObject = new GameObject("XR Origin");
+            originObject.transform.SetParent(sessionRoot.transform, false);
             XROrigin origin = originObject.AddComponent<XROrigin>();
             GameObject cameraObject = new GameObject("AR Camera");
             cameraObject.tag = "MainCamera";
