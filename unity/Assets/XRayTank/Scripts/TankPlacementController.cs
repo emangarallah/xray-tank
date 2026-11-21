@@ -25,6 +25,7 @@ namespace XRayTank
         private float initialYaw;
 
         public bool IsPlaced => placedTank != null;
+        public GameObject PlacedTank => placedTank;
 
         private void Awake()
         {
