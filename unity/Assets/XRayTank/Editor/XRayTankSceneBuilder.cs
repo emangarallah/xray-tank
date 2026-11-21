@@ -126,7 +126,10 @@ namespace XRayTank.Editor
             GameObject canvasObject = new GameObject("AR Instructions");
             Canvas canvas = canvasObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasObject.AddComponent<CanvasScaler>();
+            CanvasScaler scaler = canvasObject.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1080f, 1920f);
+            scaler.matchWidthOrHeight = 0.5f;
             canvasObject.AddComponent<GraphicRaycaster>();
 
             GameObject textObject = new GameObject("Scanning Hint");
@@ -243,6 +246,7 @@ namespace XRayTank.Editor
             input.targetGraphic = background;
             input.contentType = password ? InputField.ContentType.Password : InputField.ContentType.Standard;
             input.lineType = InputField.LineType.SingleLine;
+            input.characterLimit = password ? 128 : 64;
             return input;
         }
         private static Material MakeMaterial(string name, Color color, bool transparent)
