@@ -20,6 +20,7 @@ namespace XRayTank.Editor
         [MenuItem("X-Ray Tank/Build Starter AR Scene")]
         public static void Build()
         {
+            if (!AssetDatabase.IsValidFolder(Root)) AssetDatabase.CreateFolder("Assets", "XRayTank");
             EnsureFolder(Root, "Prefabs");
             EnsureFolder(Root, "Scenes");
             EnsureFolder(Root, "Materials");
@@ -55,6 +56,12 @@ namespace XRayTank.Editor
             SetPrivateField(placer, "tankPrefab", tankPrefab);
             SetPrivateField(placer, "arCamera", camera);
 
+            Text telemetryStatus = CreateStatusText();
+            TankTelemetryClient telemetry = originObject.AddComponent<TankTelemetryClient>();
+            SetPrivateField(telemetry, "placement", placer);
+            SetPrivateField(telemetry, "statusLabel", telemetryStatus);
+            SetPrivateField(telemetry, "levelLabel", telemetryStatus);
+
             GameObject gate = new GameObject("Camera Permission Gate");
             ARCameraPermissionGate permission = gate.AddComponent<ARCameraPermissionGate>();
             SetPrivateField(permission, "arSessionRoot", sessionRoot);
@@ -63,6 +70,9 @@ namespace XRayTank.Editor
             ARPlaneGuide guide = originObject.GetComponent<ARPlaneGuide>();
             SetPrivateField(guide, "scanningHint", scanningHint);
             PlayerSettings.iOS.cameraUsageDescription = "X-Ray Tank uses the camera to place a virtual tank in augmented reality.";
+            PlayerSettings.SetScriptingBackend(BuildTargetGroup.Android, ScriptingImplementation.IL2CPP);
+            PlayerSettings.SetApiCompatibilityLevel(BuildTargetGroup.Android, ApiCompatibilityLevel.NET_Standard_2_1);
+            PlayerSettings.SetPropertyInt("activeInputHandler", 2, BuildTargetGroup.Android);
 
             EditorSceneManager.SaveScene(scene, Scenes + "/XRayTankAR.unity");
             AssetDatabase.SaveAssets();
@@ -129,6 +139,26 @@ namespace XRayTank.Editor
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
             return textObject;
+        }
+
+        private static Text CreateStatusText()
+        {
+            GameObject canvasObject = GameObject.Find("AR Instructions");
+            if (canvasObject == null) return null;
+            GameObject labelObject = new GameObject("Live Telemetry Status");
+            labelObject.transform.SetParent(canvasObject.transform, false);
+            Text label = labelObject.AddComponent<Text>();
+            label.text = "Live data not configured";
+            label.alignment = TextAnchor.LowerCenter;
+            label.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
+            label.fontSize = 22;
+            label.color = Color.white;
+            RectTransform rect = label.rectTransform;
+            rect.anchorMin = new Vector2(0.04f, 0.04f);
+            rect.anchorMax = new Vector2(0.96f, 0.17f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;
+            return label;
         }
 
         private static Material MakeMaterial(string name, Color color, bool transparent)
