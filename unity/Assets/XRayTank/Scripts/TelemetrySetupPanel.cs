@@ -11,7 +11,7 @@ namespace XRayTank
         [SerializeField] private Button connectButton;
         [SerializeField] private TankTelemetryClient telemetryClient;
 
-        private void OnEnable()
+        private void Start()
         {
             if (connectButton != null) connectButton.onClick.AddListener(Connect);
         }
