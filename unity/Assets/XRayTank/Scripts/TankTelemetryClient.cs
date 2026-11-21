@@ -32,6 +32,22 @@ namespace XRayTank
             if (configured) polling = StartCoroutine(PollLoop());
         }
 
+        public void ConnectWithCredentials(string id, string key)
+        {
+            if (polling != null) StopCoroutine(polling);
+            polling = null;
+            deviceId = (id ?? string.Empty).Trim();
+            deviceKey = (key ?? string.Empty).Trim();
+            configured = !string.IsNullOrWhiteSpace(deviceId) && deviceKey.Length >= 32;
+            if (!configured)
+            {
+                SetStatus("Enter a valid tank ID and device key (at least 32 characters).");
+                return;
+            }
+            SetStatus("Credentials accepted locally — connecting…");
+            if (isActiveAndEnabled) polling = StartCoroutine(PollLoop());
+        }
+
         private void OnDisable()
         {
             if (polling != null) StopCoroutine(polling);
